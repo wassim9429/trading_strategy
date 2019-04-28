@@ -98,5 +98,30 @@ def stochastic_oscillator(data, n):
     return percent_k
 
 
+def bollinger_bands(data, n, std_mult=2.0):
+	catch_errors.check_for_period_error(data, n)
 
+	sma = simple_moving_average(data, n)
+	smstd = sma.rolling(n, min_periods=n).std()
+	upper_bb = sma + std_mult * smstd
+	lower_bb = sma - std_mult * smstd
+
+	return lower_bb, sma, upper_bb
+
+
+
+
+
+def bandwidth(data, n, std_mult=2.0):
+    """
+    Bandwidth.
+    Formula:
+    bw = u_bb - l_bb / m_bb
+    """
+    catch_errors.check_for_period_error(data, n)
+    lower_bb, mid_bb, upper_bb = bollinger_bands(data, n, std_mult=std_mult)
+
+    bandwidth = 100 * (upper_bb - lower_bb )/  mid_bb
+
+    return bandwidth
 
