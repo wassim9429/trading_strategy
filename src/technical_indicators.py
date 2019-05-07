@@ -14,7 +14,7 @@ def simple_moving_average(data, n):
     :return: pandas.Series of moving averages
     """
     catch_errors.check_for_period_error(data, n)
-    MA = pd.Series(data['Close'].rolling(n, min_periods=n).mean(), name='SMA_' + str(n))
+    MA = pd.Series(data['Adj Close'].rolling(n, min_periods=n).mean(), name='SMA_' + str(n))
     return MA
 
 

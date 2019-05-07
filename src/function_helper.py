@@ -1,10 +1,10 @@
 
 from __future__ import absolute_import
 import numpy as np
+import pandas as pd
 
 
-
-def get_orders(actions):
+def get_orders(positions, order_value=1000):
 	"""
 	Takes the output of the strategy (actions series which is pd Series)
 	outputs a data frame  with 2 columns (order and shares)
@@ -16,61 +16,45 @@ def get_orders(actions):
 	for index, position in positions.iteritems():
 		if position == "long":
 			if holding==0:
-				Orders.loc[index] = ["BUY", int(1000)]
-			if holding==-1000:
-				Orders.loc[index] = ["BUY", int(2000)]
-			holding=1000
+				Orders.loc[index] = ["BUY", int(order_value)]
+			if holding==-order_value:
+				Orders.loc[index] = ["BUY", int(order_value*2)]
+			holding=order_value
 		if position == "short":
 			if holding==0:
-				Orders.loc[index] = ["SELL", int(1000)]
-			if holding==1000:
-				Orders.loc[index] = ["SELL", int(2000)]
-			holding=-1000
+				Orders.loc[index] = ["SELL", int(-order_value)]
+			if holding==order_value:
+				Orders.loc[index] = ["SELL", int(-order_value*2)]
+			holding=-order_value
 		if position == "close":
 			if holding > 0:
-				Orders.loc[index] = ["SELL", holding]
+				Orders.loc[index] = ["SELL", -holding]
 			if holding < 0:
-				Orders.loc[index] = ["BUY", holding]
+				Orders.loc[index] = ["BUY", -holding]
 			holding=0
 	return Orders
 
 
 
-def compute_portvals(Orders, data, start_val = 1000000, commission=9.95, impact=0.005):                                                                
+def compute_portvals(actions, data, order_value=1000, start_val = 1000, comission=0, impact=0):                                                                
     """
 	Takes as input the 
 	Orders: data frame with orders
 	data: Prices data frame
 	start_val: the start value
-	commission
-	impact
-    """ 
 
-
-                                                    
-    orders = Orders.copy()
-    # reading orders
-    #orders = pd.read_csv(orders_file)
-    Dates = orders.index
-    start_date = Dates.min()
-    end_date = Dates.max()
-    symbol = orders.columns[0]
-    prices = get_data([symbol], pd.date_range(start_date, end_date))
-    del prices["SPY"]
-
-
-    orders["impact"] = [-impact] * orders.shape[0]
-    orders.loc[orders[symbol]==0]=0
-
-
-    orders["cash"] = orders["impact"]  - orders[symbol] * prices[symbol]  
-    orders["cash"][0] = orders["cash"][0] + start_val
-
-
-    orders = orders.cumsum()
-    orders[symbol] =  orders[symbol] * prices[symbol] 
-    portvals = orders.sum(axis=1)
-    return portvals
+    """                                              
+    Orders = get_orders(actions, order_value)
+    Dates = Orders.index
+    sd = data.index.min()
+    holdings = actions.replace(["long","short","close"], [order_value,-order_value,0]).multiply(data["Adj Close"])
+    Impact = pd.Series([-impact]*Orders.shape[0], index = Orders.index)
+    Impact = Impact.reindex(data.index, fill_value=0)
+    Cash = -data["Adj Close"].multiply(Orders["Shares"], fill_value=0)
+    Cash = Cash - Cash * comission + Impact
+    Cash.loc[sd] = Cash.loc[sd] + start_val
+    Cash = Cash.cumsum()
+    return Cash + holdings
 
 
 def computing_daily_returns(port_val):
