@@ -59,13 +59,16 @@ def compute_portvals(actions, data, order_value=1000, start_val = 1000, comissio
 
 def computing_daily_returns(port_val):
     daily_rets = port_val.copy()
-    daily_rets[1:] = (port_val[1:] / port_val[:-1]) -1
-    daily_rets = daily_rets[1:] 
+    #daily_rets = (port_val[1:] / port_val[:-1]) -1
+    print port_val.tail()
+    print port_val.shift(1).tail()
+    daily_rets = port_val / port_val.shift(1) -1
+    #daily_rets = daily_rets[1:] 
     return daily_rets
 
 
 def compute_statistics(port_val):
-    cr=(port_val[-1]/port_val[0]) - 1
+    cr=(port_val.iloc[-1]/port_val.iloc[1]) - 1
     daily_rets = computing_daily_returns(port_val)
     adr=daily_rets.mean()
     sddr=daily_rets.std()  
