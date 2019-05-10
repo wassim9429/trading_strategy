@@ -46,7 +46,7 @@ def compute_portvals(actions, data, order_value=1000, start_val = 1000, comissio
     """                                              
     Orders = get_orders(actions, order_value)
     Dates = Orders.index
-    sd = data.index.min()
+    sd = actions.index.min()
     holdings = actions.replace(["long","short","close"], [order_value,-order_value,0]).multiply(data["Adj Close"])
     Impact = pd.Series([-impact]*Orders.shape[0], index = Orders.index)
     Impact = Impact.reindex(data.index, fill_value=0)
@@ -58,10 +58,6 @@ def compute_portvals(actions, data, order_value=1000, start_val = 1000, comissio
 
 
 def computing_daily_returns(port_val):
-    daily_rets = port_val.copy()
-    #daily_rets = (port_val[1:] / port_val[:-1]) -1
-    print port_val.tail()
-    print port_val.shift(1).tail()
     daily_rets = port_val / port_val.shift(1) -1
     #daily_rets = daily_rets[1:] 
     return daily_rets
@@ -74,7 +70,6 @@ def compute_statistics(port_val):
     sddr=daily_rets.std()  
     sr = np.sqrt(252) * adr / sddr
     return cr , adr, sddr, sr
-
 
 
 def fill_for_noncomputable_vals(input_data, result_data):

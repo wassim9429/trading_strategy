@@ -74,12 +74,15 @@ def relative_strength_index(data, lookback):
 	catch_errors.check_for_period_error(data, lookback)
 	daily_rets = daily_returns(data)
 	rsi_list=[np.nan] * lookback
-	for day in range(lookback,data['Adj Close'].shape[0]):
-		up_gain = daily_rets[day - lookback+1:day+1].where(daily_rets >= 0).sum()
+	for day in range(lookback,data.shape[0]):
+		up_gain = daily_rets.iloc[day - lookback+1:day+1].where(daily_rets >= 0).sum()
 		down_loss = -1 * daily_rets.iloc[day - lookback+1:day+1].where(daily_rets<0).sum()
-		if down_loss == 0:
+        print up_gain
+        print down_loss
+        print "----------"
+        if down_loss == 0:
 			rsi_list.append(100)
-		else:
+        else:
 			rs = (up_gain / lookback) / (down_loss / lookback)
 			rsi_list.append(100 - (100/(1+rs)))
 	rsi = pd.Series(rsi_list, index = data.index)
@@ -124,4 +127,19 @@ def bandwidth(data, n, std_mult=2.0):
     bandwidth = 100 * (upper_bb - lower_bb )/  mid_bb
 
     return bandwidth
+
+
+
+def indicators_status(data, n=20):
+    df = pd.DataFrame(index = data.index)
+    df["Momentum"] = momentum(data, n)
+    df["Price_SMA_ratio"] = price_SMA_ratio(data, n)
+    df["relative_strength_index"] = price_SMA_ratio(data, n)
+    df["Stochastic_oscillator"] = bandwidth(data, n, std_mult=2.0)
+    df["Bandwidth"] = bandwidth(data, n, std_mult=2.0)
+    df["daily_returns"] = daily_returns(data)
+    df["target"] = np.where(df["daily_returns"]>=0, "1", "-1")
+    del df["daily_returns"]
+    df = df.dropna()
+    return df
 
