@@ -64,29 +64,26 @@ def daily_returns(data):
 
 
 def relative_strength_index(data, lookback):
-	"""
-	Calculate the relative strength index 
-	:param data: pandas.DataFrame of prices data
+   """
+   Calculate the relative strength index 
+   :param data: pandas.DataFrame of prices data
     :param lookback: int number of periods to look back 
     :return: pandas.Series 
 
-	"""
-	catch_errors.check_for_period_error(data, lookback)
-	daily_rets = daily_returns(data)
-	rsi_list=[np.nan] * lookback
-	for day in range(lookback,data.shape[0]):
-		up_gain = daily_rets.iloc[day - lookback+1:day+1].where(daily_rets >= 0).sum()
-		down_loss = -1 * daily_rets.iloc[day - lookback+1:day+1].where(daily_rets<0).sum()
-        print up_gain
-        print down_loss
-        print "----------"
-        if down_loss == 0:
-			rsi_list.append(100)
-        else:
-			rs = (up_gain / lookback) / (down_loss / lookback)
-			rsi_list.append(100 - (100/(1+rs)))
-	rsi = pd.Series(rsi_list, index = data.index)
-	return rsi
+   """
+   catch_errors.check_for_period_error(data, lookback)
+   daily_rets = daily_returns(data)
+   rsi_list=[np.nan] * lookback
+   for day in range(lookback,data.shape[0]):
+      up_gain = daily_rets.iloc[day - lookback+1:day+1].where(daily_rets >= 0).sum()
+      down_loss = -1 * daily_rets.iloc[day - lookback+1:day+1].where(daily_rets<0).sum()
+      if down_loss == 0:
+      	rsi_list.append(100)
+      else:
+      	rs = (up_gain / lookback) / (down_loss / lookback)
+      	rsi_list.append(100 - (100/(1+rs)))
+   rsi = pd.Series(rsi_list, index = data.index)
+   return rsi
 
 
 
@@ -134,12 +131,12 @@ def indicators_status(data, n=20):
     df = pd.DataFrame(index = data.index)
     df["Momentum"] = momentum(data, n)
     df["Price_SMA_ratio"] = price_SMA_ratio(data, n)
-    df["relative_strength_index"] = price_SMA_ratio(data, n)
-    df["Stochastic_oscillator"] = bandwidth(data, n, std_mult=2.0)
-    df["Bandwidth"] = bandwidth(data, n, std_mult=2.0)
+    df["relative_strength_index"] = relative_strength_index(data, n)
+    #df["Stochastic_oscillator"] = bandwidth(data, n, std_mult=2.0)
+    #df["Bandwidth"] = bandwidth(data, n, std_mult=2.0)
     df["daily_returns"] = daily_returns(data)
     df["target"] = np.where(df["daily_returns"]>=0, "1", "-1")
-    del df["daily_returns"]
+    #del df["daily_returns"]
     df = df.dropna()
     return df
 
