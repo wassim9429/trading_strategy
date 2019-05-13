@@ -54,7 +54,9 @@ def compute_portvals(actions, data, order_value=1000, start_val = 1000, comissio
     Cash = Cash - Cash * comission + Impact
     Cash.loc[sd] = Cash.loc[sd] + start_val
     Cash = Cash.cumsum()
-    return Cash + holdings
+    portval = Cash + holdings
+    portval = portval.dropna()
+    return portval
 
 
 def computing_daily_returns(port_val):
