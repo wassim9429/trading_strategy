@@ -130,9 +130,9 @@ def bandwidth(data, n, std_mult=2.0):
 def indicators_status(data, n=20):
     df = pd.DataFrame(index = data.index)
     df["Momentum"] = momentum(data, n)
-    df["Price_SMA_ratio"] = price_SMA_ratio(data, n)
+    #df["Price_SMA_ratio"] = price_SMA_ratio(data, n)
     df["relative_strength_index"] = relative_strength_index(data, n)
-    #df["Stochastic_oscillator"] = bandwidth(data, n, std_mult=2.0)
+    df["Stochastic_oscillator"] = bandwidth(data, n, std_mult=2.0)
     #df["Bandwidth"] = bandwidth(data, n, std_mult=2.0)
     df["daily_returns"] = daily_returns(data)
     df["target"] = np.where(df["daily_returns"]>=0, "1", "-1")
