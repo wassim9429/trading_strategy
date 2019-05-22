@@ -41,9 +41,9 @@ def discretize(indicator, n_bins = 5):
 
 def discretizing_indicators(indicators_status):
 	indicators_status["Momentum"] = discretize(indicators_status["Momentum"])
-	indicators_status["Price_SMA_ratio"] = discretize(indicators_status["Price_SMA_ratio"])
+	#indicators_status["Price_SMA_ratio"] = discretize(indicators_status["Price_SMA_ratio"])
 	indicators_status["relative_strength_index"] = discretize(indicators_status["relative_strength_index"])
-	# indicators_status["Stochastic_oscillator"] = discretize(indicators_status["Stochastic_oscillator"])
+	indicators_status["Stochastic_oscillator"] = discretize(indicators_status["Stochastic_oscillator"])
 	# indicators_status["Bandwidth"] = discretize(indicators_status["Bandwidth"])
 	return indicators_status
 
@@ -104,11 +104,11 @@ class StrategyLearner(object):
             gamma = 0.9, \
             rar = 0.3, \
             radr = 0.99, \
-            dyna = 100, \
+            dyna = 200, \
             verbose=False) #initialize the learner 
   		   	  			    		  		  		    	 		 		   		 		  
     # this method should create a QLearner, and train it for trading  		   	  			    		  		  		    	 		 		   		 		  
-    def addEvidence(self, data):  		   	  			    		  		  		    	 		 		   		 		  
+    def addEvidence(self, data, n_iteration=70):  		   	  			    		  		  		    	 		 		   		 		  
 		n_bins = self.n  		   	  			    		  		  		    	 		 		   		 		  
 		# Importing Technical indicators         
 		T = TI.indicators_status(data, n=20)
@@ -119,9 +119,8 @@ class StrategyLearner(object):
 		# initializing convergence
 		converged = False 
 		# Learning QLearning        
-		while((iteration <= 70) & (not converged)):
-			print "iteration "
-			print iteration
+		while((iteration <= n_iteration) & (not converged)):
+			
 			# initializing holding
 			iteration = iteration + 1
 			# initializing holding
@@ -135,7 +134,7 @@ class StrategyLearner(object):
 			# get the first row (information from first day)
 			row = indicators_df.iloc[0]
 			# compute first state
-			state = (position(holding), row["Momentum"], row["Price_SMA_ratio"], row["relative_strength_index"])      
+			state = (position(holding), row["Momentum"], row["Stochastic_oscillator"], row["relative_strength_index"])      
 			# converting state to state index
 			s_index = state2index(state,n_bins)
 			# getting first action
@@ -157,7 +156,7 @@ class StrategyLearner(object):
 				# computing reward
 				reward = row["daily_returns"] * holding 
 				# computing new state and new state index
-				state = (position(holding), row["Momentum"], row["Price_SMA_ratio"], row["relative_strength_index"])
+				state = (position(holding), row["Momentum"], row["Stochastic_oscillator"], row["relative_strength_index"])
 				
 				s_index = state2index(state,n_bins)
 				# getting new action and updating Qtable
@@ -175,8 +174,6 @@ class StrategyLearner(object):
 
 			if compare(trades, prev_trades)==0 :
 				print " \n\n it has converged \n\n"
-				print trades
-				print prev_trades
 				converged = True
 			
 
@@ -205,7 +202,7 @@ class StrategyLearner(object):
 		# get the first row (information from first day)
 		row = indicators_df.iloc[0]
 		# compute first state
-		state = (position(holding), row["Momentum"], row["Price_SMA_ratio"], row["relative_strength_index"])      
+		state = (position(holding), row["Momentum"], row["Stochastic_oscillator"], row["relative_strength_index"])      
 		# converting state to state index
 		s_index = state2index(state,n_bins)
 		# getting first action
@@ -223,7 +220,7 @@ class StrategyLearner(object):
 		for i in range(1, indicators_df.shape[0]):
 			holding = holding + trade
 			row = indicators_df.iloc[i]
-			state = (position(holding), row["Momentum"], row["Price_SMA_ratio"], row["relative_strength_index"]) 
+			state = (position(holding), row["Momentum"], row["Stochastic_oscillator"], row["relative_strength_index"]) 
 			s_index = state2index(state,n_bins)
 			action = self.learner.querysetstate(s_index)
 			trade = trade_from_action(action, holding)
